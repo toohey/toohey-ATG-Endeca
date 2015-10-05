@@ -21,6 +21,14 @@ service mysql stop
 
 
 # remove temp files created during install and prepare for new box!
+# ref http://linoxide.com/linux-how-to/setup-centos-7-vagrant-base-box-virtualbox/
+# from related bug - vewee's cleanup script for centos
+# # Remove traces of mac address from network configuration
+# also zhenji on https://github.com/mitchellh/vagrant/issues/1693
+sed -i /HWADDR/d /etc/sysconfig/network-scripts/ifcfg-eth0
+rm -f /etc/udev/rules.d/70-persistent-net.rules
+rm -f /etc/sysconfig/network-scripts/ifcfg-eth1
+
 yum clean all  
 rm -rf /tmp/*  
 rm -f /var/log/wtmp /var/log/btmp  

@@ -190,8 +190,8 @@ Key Information:
 ##Package and add new vagrant box for easy reuse
 Run the following command to create a new vagant box:
 
-	vagrant package --output toohey-atg-installed.box  
-	vagrant box add toohey-atg-installed toohey-atg-installed.box  
+	vagrant package --output releases/toohey-atg-installed.box  
+	vagrant box add toohey-atg-installed releases/toohey-atg-installed.box  
 
 On my machine, the size of the box file is 2.7 gigs. Considering that download of software is 2.4 gigs + .3 gig OS means this is as low as it can get.  
 
