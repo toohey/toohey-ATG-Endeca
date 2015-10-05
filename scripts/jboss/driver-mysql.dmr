@@ -1,0 +1,9 @@
+{ "jdbc-driver" =>  
+  { "mysql" => {
+        "driver-name" => "mysql",
+        "driver-module-name" => "com.mysql",
+        "driver-xa-datasource-class-name" => "com.mysql.jdbc.jdbc2.optional.MysqlXADataSource",
+		"driver-class-name" => "com.mysql.jdbc.Driver"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+/subsystem=logging/periodic-rotating-file-handler=FILE:write-attribute(name="file", value={"path"=>"crs_sso.log", "relative-to"=>"jboss.server.log.dir"})
+/subsystem=deployment-scanner/scanner=default:write-attribute(name="path",value="deployments/crs_sso")
+/interface=public:write-attribute(name=inet-address,value=0.0.0.0)
+/interface=management:write-attribute(name=inet-address,value=0.0.0.0)
+/interface=unsecure:write-attribute(name=inet-address,value=0.0.0.0)
+/socket-binding-group=standard-sockets:write-attribute(name="port-offset",value="${jboss.socket.binding.port-offset:300}")
+:reload

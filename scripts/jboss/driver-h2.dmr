@@ -1,0 +1,5 @@
+{ "jdbc-driver" =>  
+  { 
+	  "h2" => "deleted"
+  }
+}

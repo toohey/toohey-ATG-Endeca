@@ -1,0 +1,14 @@
+{ "logging" =>
+   {
+        "logger" => {
+			"org.apache.cxf.interceptor.LoggingInInterceptor" => {
+				"category" => "org.apache.cxf.interceptor.LoggingInInterceptor",
+				"level" => "WARN"
+			},
+			"org.apache.cxf.interceptor.LoggingOutInterceptor" => {
+				"category" => "org.apache.cxf.interceptor.LoggingOutInterceptor",
+				"level" => "WARN"
+			}
+		}
+    }
+}

@@ -1,0 +1,237 @@
+
+# use vagrant-box in https://github.com/toohey/toohey-os/releases/download/toohey-centos65/toohey-centos65.box
+
+# convenience for most object updates:
+# install jcliff (rpm command)
+sudo rpm -i /vagrant/software/jcliff-2.10.7-1.noarch.rpm
+
+# need to setup jboss server
+# add mysql driver to jboss as module - only once
+mkdir -p /home/vagrant/jboss/modules/com/mysql/main
+cp /vagrant/software/mysql-connector-java-5.1.36-bin.jar /home/vagrant/jboss/modules/com/mysql/main
+cp /vagrant/scripts/jboss/module.xml /home/vagrant/jboss/modules/com/mysql/main
+
+
+# copy existing server config:
+cd /home/vagrant/jboss
+cp standalone/configuration/standalone.xml standalone/configuration/crs_sso.xml
+# deployment destination
+mkdir standalone/deployments/crs_sso
+# new startup script
+cp /vagrant/scripts/jboss/runAtg.sh ./bin/run_crs_sso.sh
+chmod +x ./bin/run_crs_sso.sh
+
+
+# config update - port change, deployment dir, log location
+
+# window 1:
+./bin/run_crs_sso.sh
+
+#window 2:
+# ./bin/jboss-cli.sh --connect --controller=127.0.0.1:9999
+
+#logdir, port-offset, deployment dir :
+./bin/jboss-cli.sh --connect --controller=127.0.0.1:9999 --file=/vagrant/scripts/jboss/instance-setup.cli
+
+#checking
+./bin/jboss-cli.sh --connect --controller=127.0.0.1:10299
+
+
+
+# db driver setup
+
+# add mysql driver (module created earlier)
+jcliff --cli=/home/vagrant/jboss/bin/jboss-cli.sh --controller=localhost:10299 -v /vagrant/scripts/jboss/driver-mysql.dmr
+
+# add datasource
+jcliff --cli=/home/vagrant/jboss/bin/jboss-cli.sh --controller=localhost:10299 -v /vagrant/scripts/jboss/datasource-atgDS.dmr
+
+# remove OOB datasource
+jcliff --cli=/home/vagrant/jboss/bin/jboss-cli.sh --controller=localhost:10299 -v /vagrant/scripts/jboss/datasource-ExampleDS.dmr
+
+# remove OOB driver
+jcliff --cli=/home/vagrant/jboss/bin/jboss-cli.sh --controller=localhost:10299 -v /vagrant/scripts/jboss/driver-h2.dmr
+
+# reduce atg logging on jboss as per atg doc
+jcliff --cli=/home/vagrant/jboss/bin/jboss-cli.sh --controller=localhost:10299 -v /vagrant/scripts/jboss/logging-atg-reduce.dmr
+
+# stop running jboss instance
+
+# create jboss server instances and use it from CIM
+# DON't create jboss instances using CIM
+# also dont do post deploy tasks to jboss installation
+# this is currently done manually
+# may automate it in future - for now manual
+# crs_simple_nonswitch - plan 2 db, 2 instances
+# connection pools: crs_coreDS, crs_verDS
+# crs_ps:8180 connect to crs_coreDS
+# crs_am:8280 connect to crs_coreDS, crs_verDS 
+# use existing jboss instances and configue
+# appropriate in ATG
+
+# what i've done
+cd /home/vagrant/ATG/ATG11.1/home
+bin/cim.sh -record -noencryption
+
+# Use the following:
+# - JBoss: /home/vagrant/jboss
+# - Java: /usr/java/jdk1.7.0_79
+# - mysql driver: /home/vagrant/ATG/ATG11.1/mysql/mysql-connector-java-5.1.36-bin.jar
+# - security: /home/vagrant/ATG/ATG11.1/home/security/crs_pre_stg_switch
+# - archive: /usr/local/endeca/Apps/CRS/data/workbench/application_export_archive/CRS
+# save cim.batch and cim.log
+
+
+# runAssembler -server "crs_am" -jboss  "/home/vagrant/jboss/standalone/deployments/crs_am/crs_am.ear"  -m DCS-UI.Versioned BIZUI PubPortlet DafEar.Admin ContentMgmt.Versioned DCS-UI.SiteAdmin.Versioned SiteAdmin.Versioned DCS.Versioned DCS-UI Store.EStore.Versioned Store.Storefront ContentMgmt.Endeca.Index.Versioned DCS.Endeca.Index.Versioned Store.Endeca.Index.Versioned DCS.Endeca.Index.SKUIndexing Store.EStore.International.Versioned Store.Endeca.International
+
+# runAssembler -server "crs_ps" -jboss  "/home/vagrant/jboss/standalone/deployments/crs_ps/crs_ps.ear" -layer EndecaPreview  -m DCS.AbandonedOrderServices DafEar.Admin DPS DSS ContentMgmt DCS.PublishingAgent DCS.AbandonedOrderServices ContentMgmt.Endeca.Index DCS.Endeca.Index Store.Endeca.Index DAF.Endeca.Assembler DCS.Endeca.Index.SKUIndexing Store.Storefront Store.EStore.International Store.Endeca.International Store.Fulfillment PublishingAgent Store.EStore
+
+
+
+# fix atg issues - inlcuding incremental update
+
+
+# full deployment setup
+# topology can be backed up from /atg/epub/deployment/TopologyManager Primary topology
+# login as admin/Password1 on http://atgbox.dev:8280/atg/bcc
+# CA console > configuration > add site
+# site name: Production
+# do full deplymnet
+# workflow target
+# repository mappings:
+# Source	Destination
+# /atg/commerce/catalog/SecureProductCatalog	/atg/commerce/catalog/ProductCatalog_production
+# /atg/commerce/claimable/SecureClaimableRepository	/atg/commerce/claimable/ClaimableRepository_production
+# /atg/commerce/locations/SecureLocationRepository	/atg/commerce/locations/LocationRepository_production
+# /atg/commerce/pricing/priceLists/SecurePriceLists	/atg/commerce/pricing/priceLists/PriceLists_production
+# /atg/content/SecureContentManagementRepository	/atg/content/ContentManagementRepository_production
+# /atg/multisite/SecureSiteRepository	/atg/multisite/SiteRepository_production
+# /atg/seo/SecureSEORepository	/atg/seo/SEORepository_production
+# /atg/store/stores/SecureStoreContentRepository	/atg/store/stores/StoreContentRepository_production
+# /atg/userprofiling/PersonalizationRepository	/atg/userprofiling/PersonalizationRepository_production
+# Save Changes
+# agents tab
+# Add agent to site
+# agent name: ps1
+# transport url: rmi://localhost:8861/atg/epub/AgentTransport
+# include file systems:
+# /atg/epub/file/ConfigFileSystem
+# /atg/epub/file/WWWFileSystem
+# save changes
+# click "back to deployment administration configuration" at top - small font
+# click make changes live
+# do full deployment
+# click make changes live (will take a while - high CPU utilisation also)
+# mysql deadlock and fail!! but deployment succeeded!
+# later - will try another full deployment after another build deploy - in case it is standalone deployment and multiple thread being used for deployment
+# later - will also try setup with mysql large DB setup
+# trigger endeca baseline update status at (admin/Password1) http://atgbox.dev:8180/dyn/admin/nucleus//atg/commerce/endeca/index/ProductCatalogSimpleIndexingAdmin/
+
+
+
+
+______________current:
+
+
+runAssembler -server "test_core" -jboss  "/home/vagrant/jboss/standalone/deployments/test_core/test_core.ear"  -m DafEar.Admin DPS DSS ContentMgmt DSSJ2EEDemo
+
+
+touch standalone/deployments/test_core/test_core.ear.dodeploy
+
+CIM deployment changes deployment scanner setting - for every deploy!
+somewhere need to stop using localhost since bcc redirecting to that
+
+
+__________above this is working___below is notes
+
+change port:
+http://www.mastertheboss.com/jboss-server/jboss-configuration/configuring-port-offset-on-jboss-as-wildfly
+
+
+maybe use ansible vs salt vs chef vs puppet
+or just shell script :-)
+
+installing jboss and instances:
+https://gist.github.com/fishnix/2968005
+
+manage container:
+https://github.com/cpitman/puppet-jboss_admin
+
+install container:
+https://github.com/example42/puppet-jboss
+
+Chef Cookbook for JBoss AS 7:
+https://github.com/wharton/chef-jbossas7
+
+http://www.techpaste.com/2012/02/jboss-7-application-server-file-system-explained/
+
+
+
+add driver module (core module added earlier):
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name=mysql,driver-module-name=com.mysql,driver-xa-datasource-class-name=com.mysql.jdbc.jdbc2.optional.MysqlXADataSource,driver-class-name=com.mysql.jdbc.Driver)
+
+this fails: http://stackoverflow.com/questions/24097518/jboss-6-2-eap-unable-to-add-mysql-datasource-and-module
+/subsystem=datasources/jdbc-driver=mysql:add(driver-name="mysql",driver-module-name="com.mysql",driver-xa-datasource-class-name="com.mysql.jdbc.jdbc2.optional.MysqlXADataSource")
+
+
+
+
+add local datasource:
+# Add an XA datasource
+xa-data-source add \
+    --name=ATGProductionDS \
+    --driver-name=mysql \
+    --jndi-name="java:/ATGProductionDS" \
+    --user-name=root \
+    --password=root \
+    --min-pool-size=5 \
+    --max-pool-size=100 \
+	--transaction-isolation = TRANSACTION_READ_COMMITTED \
+	--xa-datasource-class = ".mysql.jdbc.jdbc2.optional.MysqlXADataSource"
+
+	--no-tx-separate-pools \
+	--is-same-rm-override = false \
+
+/subsystem=datasources/xa-data-source=ATGProductionDS/xa-datasource-properties=URL:add(value=jdbc:mysql://localhost:3306/test_core)
+
+xa-data-source enable --name = ATGProductionDS
+
+
+
+xa-data-source add --name=ATGProductionDS --jndi-name=java:/ATGProductionDS --driver-name=mysql --xa-datasource-class=com.mysql.jdbc.jdbc2.optional.MysqlXADataSource
+
+/subsystem=datasources/xa-data-source=ATGProductionDS/xa-datasource-properties=ServerName:add(value=HOSTNAME)
+
+xa-data-source enable --name=ATGProductionDS
+
+/subsystem=datasources/xa-data-source=XA_DATASOURCE_NAME:write-attribute(name=ATTRIBUTE_NAME,value=ATTRIBUTE_VALUE)
+
+/subsystem=datasources/xa-data-source=DATASOURCE_NAME/xa-datasource-properties=PROPERTY_NAME:add(value=PROPERTY_VALUE)
+
+:reload
+
+
+
+add connection pool:
+ref of working connection pool setup
+
+<xa-datasource enabled="true" jndi-name="java:/ATGProductionDS" pool-name="ATGProductionDS" use-java-context="true">
+		<xa-datasource-property name="URL">jdbc:mysql://localhost:3306/min111_prod</xa-datasource-property>
+		<xa-datasource-class>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</xa-datasource-class>
+		<driver>mysql-connector-java-5.1.31-bin.jarcom.mysql.jdbc.Driver_5_1</driver>
+		<!-- added by toohey - start -->
+		<xa-pool>
+			<no-tx-separate-pools/>
+			<is-same-rm-override>false</is-same-rm-override>
+			<min-pool-size>5</min-pool-size>
+			<max-pool-size>100</max-pool-size>
+		</xa-pool>
+		<!-- added by toohey - end -->
+		<security>
+			<user-name>root</user-name>
+			<password>root</password>
+		</security>
+	
+	 	<!-- To avoid deadlocks you need set this -->
+	 	<transaction-isolation>TRANSACTION_READ_COMMITTED</transaction-isolation>
+</xa-datasource>

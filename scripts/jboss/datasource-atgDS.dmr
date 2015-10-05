@@ -1,0 +1,27 @@
+{ "xadatasource" => {
+  "crs_coreDS" => {
+        "jndi-name" => "java:/crs_coreDS",
+        "driver-name" => "mysql",
+        "user-name" => "root",
+        "password" => "root",
+        "transaction-isolation" => "TRANSACTION_READ_COMMITTED",
+        "min-pool-size" => 5,
+        "max-pool-size" => 100,
+        "xa-datasource-properties" => { "URL" => {"value"=>"jdbc:mysql://localhost:3306/crs_core"}},
+        "no-tx-separate-pool" => true,
+        "same-rm-override" => false,
+        },
+  "crs_verDS" => {
+        "jndi-name" => "java:/crs_verDS",
+        "driver-name" => "mysql",
+        "user-name" => "root",
+        "password" => "root",
+        "transaction-isolation" => "TRANSACTION_READ_COMMITTED",
+        "min-pool-size" => 5,
+        "max-pool-size" => 100,
+        "xa-datasource-properties" => { "URL" => {"value"=>"jdbc:mysql://localhost:3306/crs_ver"}},
+        "no-tx-separate-pool" => true,
+        "same-rm-override" => false,
+        }
+  }
+}

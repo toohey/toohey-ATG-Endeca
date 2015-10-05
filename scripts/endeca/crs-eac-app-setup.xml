@@ -1,0 +1,33 @@
+<install app-name="CRS">
+     <deployment-path>/usr/local/endeca/Apps</deployment-path>
+     <additional-module type="custom">
+/home/vagrant/ATG/ATG11.1/CommerceReferenceStore/Store/Storefront/deploy/deploy.xml
+     </additional-module>
+     <options>
+            <option name="eac-port">8888</option>
+            <option name="workbench-port">8006</option>
+            <option name="dgraph1Port">15000</option>
+            <option name="authoringDgraphPort">15002</option>
+            <option name="logserverPort">15010</option>
+            <option name="casHost">localhost</option>
+            <option name="casPort">8500</option>
+            <option name="casRoot">/usr/local/endeca/CAS/11.1.0</option>
+            <option name="casJarVersion">11.1.0</option>
+            <option name="languageId">en</option>
+            <option name="host">localhost</option>
+            <option name="productionAppServerHost">localhost</option>
+            <option name="productionAppServerPort">8180</option>
+            <option name="previewHost">localhost</option>
+            <option name="previewPort">8180</option>
+            <option name="previewContextRoot">crs</option>
+            <option name="userSegmentsHost">localhost</option>
+            <option name="userSegmentsPort">8280</option>
+            <option name="jpsConfigFileLocation">/usr/local/endeca/ToolsAndFrameworks/11.1.0/server/workspace/credential_store/jps-config.xml</option>
+            <option name="applicationConfigExportArchive">/usr/local/endeca/Apps/CRS/data/workbench/application_export_archive</option>
+     </options>
+</install>
+
+ 
+ 
+ 
+
