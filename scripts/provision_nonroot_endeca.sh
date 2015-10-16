@@ -1,5 +1,6 @@
 echo "installing Endeca"
 #these cannot be run as root, else they fail
+#RUNNING THESE MANUALLY MAY CAUSE ENDECA PASSWORD SETUP WRONG!!
 
 #MDEX
 /vagrant/software/OCmdex6.5.1-Linux64_829811.sh --silent --target /usr/local

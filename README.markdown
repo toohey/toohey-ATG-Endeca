@@ -8,14 +8,12 @@ If you get lost, you can consult [ATG Commerce guide](http://www.oracle.com/tech
 
 This guide was inspired by (and copies from) [https://github.com/grahammather/ATG-CRS](https://github.com/grahammather/ATG-CRS) and [https://github.com/kpath/Vagrant-CRS](https://github.com/kpath/Vagrant-CRS). And whereas there are many similarities, there are some major differences:
 
-* Target  
+* Purpose  
 	* This is to help create developer environments not for production  
-	* This script is only for installing software stack
-	* and then creating a non-project specific base box
-* Offline usage possible  
+* Offline usage (almost) possible  
 	* This script uses only the files listed  
 	* Does not update the OS or anything else silently
-	* hence internet connection not required after downloading    
+	* minimal internet bandwidth required after downloading    
 * Products used  
 	* MySQL is used rather than Oracle DB  
 	* CentOS 6.5 is used rather than Oracle Linux  
@@ -24,10 +22,21 @@ This guide was inspired by (and copies from) [https://github.com/grahammather/AT
 
 Throughout this document, the top-level directory that you checked out from git will be referred to as ``script-dir``
 
+###High Level Steps
+- git clone this repository in ``script-dir``
+- Install VirtualBox
+- Install Vagrant
+- Install Vagrant plugins
+- Download software - java, jboss, Oracle Commerce (ATG and Endeca)
+- create virtual machine (vagrant up) 
+	- will add a box to vagrant - downloads 1+ GB - CentOS 6.5 desktop
+	- after download takes long (most of time is ATG database setup)
+- do manual steps if any to complete
+
 ### Product versions used in this guide:
 
 - CentOS 6.5 (x86_64)
-- MySQL Server 5.6 
+- MySQL Server 5.6  
 - MySQL Connector/J 5.1
 - Java 7
 - Jboss EAP 6.1
@@ -45,8 +54,10 @@ Specified in the COPYING file that is part of this.
 ### Other software dependencies
 
 - Vagrant 1.7.4
-- VirtualBox 4.3.3
+- VirtualBox 5.0.6
+- vagrant vbguest plugin (recommended)
 - vagrant hosts-updater plugin (optional)
+- perl 5.1.10 (mysql requires it - installed by script)
 
 ### Technical Requirements
 
@@ -87,6 +98,7 @@ This product stack is pretty heavy.  It's a DB, three endeca services and multip
 - Click on the zip downloader for 6.1.0.GA
 
 ###MySql Database
+- **Included since this is GPL licensed and allowed to share**
 - Go to the [MySql Community Server download](http://dev.mysql.com/downloads/mysql/)
 - select platform "Red Hat Enterprise Linux / Oracle Linux"
 - Download the following parts:
@@ -96,6 +108,7 @@ This product stack is pretty heavy.  It's a DB, three endeca services and multip
 
 ###MySql DB Driver
 
+- **Included since this is GPL licensed and allowed to share**
 - Go to the [MySQL Connector/J download](http://dev.mysql.com/downloads/connector/j/)
 - Select Platform "Platform independent"
 - Download Platform Independent (Architecture Independent), ZIP Archive (mysql-connector-java-5.1.36.zip)  
@@ -122,6 +135,9 @@ software/
 ├── cd
 ├── ├── ...
 ├── └── ...
+├── perl
+├── ├── ...
+├── └── ...
 ├── jboss-eap-6.1.0.zip
 ├── jdk-7u79-linux-x64.rpm
 ├── mysql-connector-java-5.1.36-bin.jar
@@ -134,9 +150,14 @@ Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) and [Vagrant](ht
 
 Tested / Recommended versions are:  
 
-- VirtualBox 4.3.3
+- VirtualBox 5.0.6
 - Vagrant	1.7.4
+- vagrant plugins
 
+Easy to install plugins using (need to be online) :  
+
+	vagrant plugin install vagrant-vbguest
+	vagrant plugin install vagrant-hostsupdater
 
 
 ## Create the vm
@@ -156,12 +177,9 @@ You'll also have the required environment variables set in the .bash_profile of 
 
 Add an entry to /etc/hosts file
 
-	192.168.70.5	atgbox.dev  
+	192.168.56.5	atgbox  
 
-The above is done automatically by vagrant if you have **vagrant-hostsupdater** plugin installed. If you want you can install it using (easiest if you are online) :  
-
-	vagrant plugin install vagrant-hostsupdater
-
+The above is done automatically by vagrant if you have **vagrant-hostsupdater** plugin installed.  
 
 To get a shell on the atgbox.dev vm, type
 
@@ -169,7 +187,7 @@ To get a shell on the atgbox.dev vm, type
 
 Key Information:
 
-- The atgbox.dev vm has the private IP 192.168.70.5.  This is defined at the top of the Vagrantfile.
+- The atgbox.dev vm has the private IP 192.168.56.5.  This is defined at the top of the Vagrantfile.
 - java is installed in `/usr/java/jdk1.7.0_79`
 - jboss is installed at `/home/vagrant/jboss`
 - All Endeca software is installed under `/usr/local/endeca`
@@ -186,23 +204,9 @@ Key Information:
 	  - endecaplatform
 	  - endecaworkbench
 	  - endecacas
+- Follow the instructions in Vagrantfile at the end
+- If you're running scripts to setup atg CRS also, look at that script for manual steps at end.
 
-##Package and add new vagrant box for easy reuse
-Run the following command to create a new vagant box:
 
-	vagrant package --output releases/toohey-atg-installed.box  
-	vagrant box add toohey-atg-installed releases/toohey-atg-installed.box  
 
-On my machine, the size of the box file is 2.7 gigs. Considering that download of software is 2.4 gigs + .3 gig OS means this is as low as it can get.  
 
-Now, you dont need the scripts that created this VM. So remove it and remove the downloaded Vagrantfile. Its easy to create brand new instances.
-
-	vagrant destroy  
-	rm Vagrantfile  
-
-##Create a fresh new virtual machine
-Finally, every time you now need to create a new clean virtual machine with fresh installation of atg + endeca + jboss + mysql on centos, run
-
-	mkdir my-new-project
-	cd my-new-project
-	vagrant init toohey-atg-installed

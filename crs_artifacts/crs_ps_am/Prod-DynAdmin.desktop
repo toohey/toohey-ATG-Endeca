@@ -1,0 +1,6 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Prod-DynAdmin
+Type=Link
+URL=http://localhost:8180/dyn/admin
+Icon=gnome-fs-bookmark

@@ -17,6 +17,10 @@ rpm --nosignature -U /vagrant/software/MySQL-shared-compat-5.6.26-1.el6.x86_64.r
 # sudo rpm -e --nodeps mysql-libs
 # sudo rpm -i /vagrant/software/MySQL-shared-compat-5.6.26-1.el6.x86_64.rpm
 
+# dependency perl!
+# sudo yum install -y perl
+rpm --nosignature -i /vagrant/software/perl/perl-5.10.1-141.el6.x86_64.rpm /vagrant/software/perl/perl-libs-5.10.1-141.el6.x86_64.rpm /vagrant/software/perl/perl-version-0.77-141.el6.x86_64.rpm /vagrant/software/perl/perl-Pod-Escapes-1.04-141.el6.x86_64.rpm /vagrant/software/perl/perl-Pod-Simple-3.13-141.el6.x86_64.rpm /vagrant/software/perl/perl-Module-Pluggable-3.90-141.el6.x86_64.rpm
+
 # from http://tecadmin.net/step-to-install-mysql-5-6-12-on-centos-6-and-rhel-6/
 rpm --nosignature -i /vagrant/software/MySQL-server-5.6.26-1.el6.x86_64.rpm
 echo " mysql server installed - some warnings are expected earlier"

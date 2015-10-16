@@ -1,0 +1,5 @@
+echo "ATG Production server : "
+~/jboss/bin/jboss-cli.sh -c --controller=localhost:10099 --command="read-attribute server-state"
+echo "ATG Asset Management (BCC) server : "
+~/jboss/bin/jboss-cli.sh -c --controller=localhost:10199 --command="read-attribute server-state"
+echo "end of status check - error means server down"

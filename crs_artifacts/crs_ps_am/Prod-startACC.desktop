@@ -1,0 +1,6 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Prod-startACC
+Type=Link
+URL=http://localhost:8180/dyn/admin/atg/dynamo/admin/en/start-acc.jhtml
+Icon=gnome-fs-bookmark

@@ -1,20 +1,7 @@
-# bug fix for linux
-# -bash: fork: retry: Resource temporarily unavailable
-# -bash: fork: Resource temporarily unavailable
-# https://access.redhat.com/solutions/543503
-# cat /etc/security/limits.d/90-nproc.conf
-# Lets do this only if we hit limit again
-# sudo cp /vagrant/bugfix/90-nproc.conf /etc/security/limits.d/90-nproc.conf
-# sudo chown root:root /etc/security/limits.d/90-nproc.conf
-# echo "nproc fix applied ... maybe that was causing endeca related failure"
 
 # copy mysql driver into atg installation
 mkdir ~/ATG/ATG11.1/mysql
 cp /vagrant/software/mysql-connector-java-5.1.36-bin.jar ~/ATG/ATG11.1/mysql/
-
-# convenience for most object updates:
-# install jcliff for simpler update using jboss-cli
-# sudo rpm -i /vagrant/software/jcliff-2.10.7-1.noarch.rpm
 
 # need to setup jboss server
 # add mysql driver to jboss as module - only once
@@ -27,8 +14,8 @@ cp /vagrant/scripts/jboss/module.xml /home/vagrant/jboss/modules/com/mysql/main
 # also dont do post deploy tasks to jboss installation
 # this is currently done manually
 # may automate it in future - for now manual
-# crs_pre_stg_switch - 5 db, 3 instances
-# connection pools: crs_coreDS, crs_verDS
+# crs_pre_stg_switch - 5 db, 3 instances (ps,stg,am)
+# connection pools: crs_coreDS, crs_verDS, crs_cataDS, crs_catbDS, crs_stgDS
 # crs_ps:8180 connect to crs_coreDS, crs_cataDS, crs_catbDS
 # crs_stg:8080 connect to crs_stgDS
 # crs_am:8280 connect to crs_coreDS, crs_cataDS, crs_catbDS, crs_stgDS, crs_verDS
@@ -44,15 +31,38 @@ mysql -u root -proot -e 'create database crs_ver'
 
 # copy jboss server setup (or manually do it as per install ):
 cp /vagrant/crs_artifacts/crs_pre_stg_switch/run_*.sh ~/jboss/bin/
+chown vagrant:vagrant ~/jboss/bin/run_*.sh
 chmod +x ~/jboss/bin/run_*.sh
 cp /vagrant/crs_artifacts/crs_pre_stg_switch/crs*.xml ~/jboss/standalone/configuration/
-cp /vagrant/crs_artifacts/crs_pre_stg_switch/tail*.sh ~/
-chmod +x ~/tail*.sh
+cp /vagrant/crs_artifacts/crs_pre_stg_switch/tail*.sh ~/scripts/
+chown vagrant:vagrant ~/scripts/tail*.sh
+chmod +x ~/scripts/tail*.sh
+
+# also copy atg server start stop scripts
+cp /vagrant/crs_artifacts/crs_pre_stg_switch/start_atg_servers.sh ~/scripts/
+cp /vagrant/crs_artifacts/crs_pre_stg_switch/stop_atg_servers.sh ~/scripts/
+chmod +x ~/scripts/*atg_servers.sh
+
+cp /vagrant/crs_artifacts/crs_pre_stg_switch/stop_atg_servers.sh ~/scripts/
+chown vagrant:vagrant ~/scripts/*atg_servers.sh
+chmod +x ~/scripts/*atg_servers.sh
+
+cp /vagrant/crs_artifacts/crs_pre_stg_switch/status.sh ~/scripts/
+chown vagrant:vagrant ~/scripts/status.sh
+chmod +x ~/scripts/status.sh
+
 
 /home/vagrant/ATG/ATG11.1/home/bin/cim.sh -batch /vagrant/crs_artifacts/crs_pre_stg_switch/batch.cim
 
+# runAssembler -server "crs_am" -jboss  "/home/vagrant/jboss/standalone/deployments/crs_am/crs_am.ear" -layer Staging preview  -m DCS-UI.Versioned BIZUI PubPortlet DafEar.Admin ContentMgmt.Versioned DCS.Versioned DCS-UI Store.EStore.Versioned Store.Storefront DCS-UI.SiteAdmin.Versioned SiteAdmin.Versioned ContentMgmt.Endeca.Index.Versioned DCS.Endeca.Index.Versioned Store.Endeca.Index.Versioned DCS.Endeca.Index.SKUIndexing Store.EStore.International.Versioned Store.Endeca.International
+
+# runAssembler -server "crs_ps" -jboss  "/home/vagrant/jboss/standalone/deployments/crs_ps/crs_ps.ear"  -m DCS.AbandonedOrderServices DafEar.Admin DPS DSS ContentMgmt DCS.PublishingAgent DCS.AbandonedOrderServices ContentMgmt.Endeca.Index DCS.Endeca.Index Store.Endeca.Index DAF.Endeca.Assembler PublishingAgent DCS.Endeca.Index.SKUIndexing Store.Storefront Store.EStore.International Store.Endeca.International Store.Fulfillment
+
+# runAssembler -server "crs_stg" -jboss  "/home/vagrant/jboss/standalone/deployments/crs_stg/crs_stg.ear" -layer EndecaPreview  -m DafEar.Admin ContentMgmt DCS.PublishingAgent DCS.AbandonedOrderServices ContentMgmt.Endeca.Index DCS.Endeca.Index Store.Endeca.Index DAF.Endeca.Assembler DCS.Endeca.Index.SKUIndexing Store.Storefront Store.EStore.International Store.Endeca.International Store.Fulfillment
+
+
 # uses:
-# /home/vagrant/ATG/ATG11.1/home/security/crs_pre_stg_switch
+# /home/vagrant/ATG/ATG11.1/home/security/crs_pre_stg_switch/
 # /usr/local/endeca/Apps/CRS/data/workbench/application_export_archive/CRS
 
 
@@ -121,13 +131,24 @@ echo "targetName=Production" >> /home/vagrant/ATG/ATG11.1/home/servers/crs_am/lo
 echo "targetName=Production" >> /home/vagrant/ATG/ATG11.1/home/servers/crs_am/localconfig/atg/content/search/ArticleOutputConfig.properties
 echo "targetName=Production" >> /home/vagrant/ATG/ATG11.1/home/servers/crs_am/localconfig/atg/content/search/MediaContentOutputConfig.properties
 
+# fix for LockManager error during startup
+echo "lockServerPort=9010" > /home/vagrant/ATG/ATG11.1/home/servers/crs_am/localconfig/atg/dynamo/service/ClientLockManager.properties \
+&& echo "useLockServer=false" >> /home/vagrant/ATG/ATG11.1/home/servers/crs_am/localconfig/atg/dynamo/service/ClientLockManager.properties \
+&& echo "lockServerAddress=localhost" >> /home/vagrant/ATG/ATG11.1/home/servers/crs_am/localconfig/atg/dynamo/service/ClientLockManager.properties
 
-#run jboss server (standalone) - separate window for convenience
-cd /home/vagrant/jboss
-bin/run_crs_ps.sh > /dev/null &
-bin/run_crs_stg.sh > /dev/null &
-bin/run_crs_am.sh > /dev/null  &
+# fix for BCC local preview not working
+# the OOB config is (missing scope):
+# $class=atg.service.preview.PreviewHost
+# $scope=session
+# hostName^=/OriginatingRequest.serverName
+# port^=/OriginatingRequest.serverPort
+# CIM has messed this up further and put localhost and port
+# which does not work if accessed from external machine
+echo "\$scope=request" > /home/vagrant/ATG/ATG11.1/home/servers/crs_am/localconfig/atg/dynamo/service/preview/Localhost.properties 
 
+
+# start all jboss instances
+~/scripts/start_atg_servers.sh
 
 # full deployment
 echo "wait for servers to start"
@@ -176,28 +197,42 @@ else
 	echo "*****************************************************"
 	echo "*****************************************************"
 fi
-	
-# create box
-# remove temp files
-# sudo yum clean all
-# sudo rm -rf /tmp/*
-# sudo rm -f /var/log/wtmp /var/log/btmp
-# sudo dd if=/dev/zero of=/EMPTY bs=1M
-# sudo rm -f /EMPTY
-# cat /dev/null > ~/.bash_history && history -c && exit
-# output to new box
-# vagrant package --output toohey-centos65.box
-# vagrant box add toohey-centos65 toohey-centos65.box
-# vagrant destroy
+
+# need GUI for ACC
+# for screenshots if needed
+# sudo yum install gnome-utils
+
+
+# flash/flex?
+# http://get.adobe.com/flashplayer/otherversions/
+# sudo rpm -ivh /vagrant/software/flash-plugin-11.2.202.521-release.x86_64.rpm
+# install multifox firefox plugin
+# install any other firefox plugin needed - jsonview
+
+
+# issues 
+# mysql saying too many connections when doing full deployment after vm export
+# endeca preview url has localhost :-(
+# bcc access to workbench links to localhost. should be atgbox
+
 
 # tests:
 # CRS production homepage showing
 # CRS stating homepage showing
-# XM segments from BCC showing
 # BCC incremental deployment working - try a project
 # BCC preview working
+# XM segments from BCC showing
+# XM preview working
+
+# done:
+# startup shutdown scripts
+# need some way to know jboss server startup is complete
+# easy way to start jboss servers
 
 # todos:
+# url for dyn admin, bcc, storefront, XM, etc
+# parameterize these scripts
+# create vagrant box after script completion
 # more space saving ideas - temp files deletion
 # endeca logs - multiple places
 # jboss work in progress files
@@ -205,13 +240,4 @@ fi
 # mysql errors, logs
 # atg temp files
 # guest additions update... versions in sync with all platforms
-# convenience shortcuts / scripts / mappings /etc
-# need some way to know jboss server startup is complete
-# easy way to start jboss servers
 
-
-
-# fixes to be done 
-# preview not working
-# 20:50:51,265 WARN  [nucleusNamespace.atg.dynamo.service.preview.PreviewURLManager] (http-/0.0.0.0:8280-2) defaultPreviewURL property is not set
-# 20:50:51,266 WARN  [nucleusNamespace.atg.dynamo.service.preview.PreviewURLManager] (http-/0.0.0.0:8280-2) defaultNoAssetPreviewURL property is not set

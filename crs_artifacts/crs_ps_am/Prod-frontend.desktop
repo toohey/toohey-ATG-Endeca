@@ -1,0 +1,6 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Prod-frontend
+Type=Link
+URL=http://localhost:8180/crs
+Icon=gnome-fs-bookmark
