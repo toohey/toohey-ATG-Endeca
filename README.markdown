@@ -27,7 +27,7 @@ Throughout this document, the top-level directory that you checked out from git 
 - Install VirtualBox
 - Install Vagrant
 - Install Vagrant plugins
-- Download software - java, jboss, Oracle Commerce (ATG and Endeca)
+- Download software - mysql, java, jboss, Oracle Commerce (ATG and Endeca)
 - create virtual machine (vagrant up) 
 	- will add a box to vagrant - downloads 1+ GB - CentOS 6.5 desktop
 	- after download takes long (most of time is ATG database setup)
@@ -57,7 +57,7 @@ Specified in the COPYING file that is part of this.
 - VirtualBox 5.0.6
 - vagrant vbguest plugin (recommended)
 - vagrant hosts-updater plugin (optional)
-- perl 5.1.10 (mysql requires it - installed by script)
+- perl 5.1.10 (mysql requires it - included part of this project - installed by script)
 
 ### Technical Requirements
 
@@ -98,7 +98,6 @@ This product stack is pretty heavy.  It's a DB, three endeca services and multip
 - Click on the zip downloader for 6.1.0.GA
 
 ###MySql Database
-- **Included since this is GPL licensed and allowed to share**
 - Go to the [MySql Community Server download](http://dev.mysql.com/downloads/mysql/)
 - select platform "Red Hat Enterprise Linux / Oracle Linux"
 - Download the following parts:
@@ -108,7 +107,6 @@ This product stack is pretty heavy.  It's a DB, three endeca services and multip
 
 ###MySql DB Driver
 
-- **Included since this is GPL licensed and allowed to share**
 - Go to the [MySQL Connector/J download](http://dev.mysql.com/downloads/connector/j/)
 - Select Platform "Platform independent"
 - Download Platform Independent (Architecture Independent), ZIP Archive (mysql-connector-java-5.1.36.zip)  
